@@ -1,0 +1,31 @@
+name: b_calculator
+description: This is a calcuclator app using Burmese digits. 
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  cupertino_icons: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+
+  uses-material-design: true
+  fonts:
+    - family: Tagu
+      fonts:
+        - asset: assets/fonts/Tagu.ttf
+    - family: Waso
+      fonts:
+        - asset: assets/fonts/Waso.ttf
