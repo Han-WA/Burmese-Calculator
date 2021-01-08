@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class LandingScreen extends StatefulWidget {
@@ -7,7 +6,7 @@ class LandingScreen extends StatefulWidget {
 }
 
 class _LandingScreenState extends State<LandingScreen> {
-  Map<String, dynamic> calNumbers = {
+  Map<String, dynamic> myanToeng = {
     "၀": 0,
     "၁": 1,
     "၂": 2,
@@ -24,45 +23,122 @@ class _LandingScreenState extends State<LandingScreen> {
     "x": "x",
     "/": "/",
     "=": "=",
-  };
+  }; //Assign String burmese to eng value
 
-  List<dynamic> NumStore = new List<dynamic>(); // Eng word for calculation
+  List<dynamic> engStored =
+      new List<dynamic>(); // Store button press Eng value for calculation
+  List<dynamic> myanStored = new List<dynamic>(); // Show Burmese Number for UI
 
-  List<dynamic> KeyStore = new List<dynamic>(); // Myanmar word for UI
+  List<String> operators = []; // Store Operation
+  List<String> calculatenumber = []; // List while calculation
+  String currentnumber = '';
+  double result = 0;
 
-  void removeNumStore() {
+  Map<dynamic, String> myanNumbers = {
+    '0': "၀",
+    '1': "၁",
+    '2': "၂",
+    '3': "၃",
+    '4': "၄",
+    '5': "၅",
+    '6': "၆",
+    '7': "၇",
+    '8': "၈",
+    '9': "၉",
+    ".": ".",
+    "-": "-",
+  }; //this map is used to assign string eng to string myanmar for the result
+
+  void clearNumber() {
     setState(() {
-      NumStore.clear();
-      KeyStore.clear();
+      engStored.clear();
+      myanStored.clear();
+      operators.clear();
+      calculatenumber.clear();
+      result = 0;
+      currentnumber = '';
     });
-  }
+  } // Clearing pressed button number
 
-  void deleteNum() {
-    if (NumStore.isNotEmpty) {
+  void removeNumber() {
+    if (myanStored.length != 0) {
       setState(() {
-        NumStore.removeLast();
-        KeyStore.removeLast();
+        engStored.clear();
+        myanStored.removeLast();
       });
     }
+  } // Removing Last Number for Delete button
+
+  void calculation() {
+    for (int c = 0; c < operators.length; c++) {
+      if (operators[c] == "+") {
+        setState(() {
+          result = double.parse(calculatenumber[c]) +
+              double.parse(calculatenumber[c + 1]);
+          calculatenumber[c + 1] = result.toString();
+        });
+      } else if (operators[c] == "-") {
+        setState(() {
+          result = double.parse(calculatenumber[c]) -
+              double.parse(calculatenumber[c + 1]);
+          calculatenumber[c + 1] = result.toString();
+        });
+      } else if (operators[c] == "x") {
+        setState(() {
+          result = double.parse(calculatenumber[c]) *
+              double.parse(calculatenumber[c + 1]);
+          calculatenumber[c + 1] = result.toString();
+        });
+      } else if (operators[c] == "/") {
+        setState(() {
+          result = double.parse(calculatenumber[c]) /
+              double.parse(calculatenumber[c + 1]);
+          calculatenumber[c + 1] = result.toString();
+        });
+      }
+    }
+
+    setState(() {
+      myanStored.clear();
+    });
+
+    result.toString().runes.forEach((int rune) {
+      var character = new String.fromCharCode(rune);
+      myanStored.add(myanNumbers[character]);
+    });
   }
 
   void buttonClick(String key) {
     if (key == 'အစ') {
-      removeNumStore();
+      clearNumber();
     } else if (key == "=") {
-      String operator;
-      String result;
-
-      for (int j = 0; j < NumStore.length; j++) {
-        String numstring = NumStore.join("");
-        List numlist = numstring.split("+", "-", "x", "/");
-
-        setState(() {});
+      for (int i = 0; i < engStored.length; i++) {
+        if (engStored[i] == "+" ||
+            engStored[i] == "-" ||
+            engStored[i] == "x" ||
+            engStored[i] == "/") {
+          setState(() {
+            operators.add(engStored[i]); // Adding +-*/ to operators list
+            calculatenumber.add(
+                currentnumber); // Adding currentnumber variable with number to calculatenumber
+            currentnumber = "";
+          });
+        } else {
+          currentnumber += engStored[i]
+              .toString(); // Adding numbers to currentnumber variable
+        }
       }
+
+      if (currentnumber != '') {
+        setState(() {
+          calculatenumber.add(currentnumber);
+        });
+      }
+      calculation(); // Calculation all the function
     } else {
       setState(() {
-        NumStore.add(calNumbers[key]);
-        KeyStore.add(key);
+        engStored.add(myanToeng[key]);
+        myanStored.add(key);
       });
     }
   }
@@ -70,21 +146,21 @@ class _LandingScreenState extends State<LandingScreen> {
   Widget commonOutlineButton(String number) {
     return Expanded(
       child: OutlineButton(
-        splashColor: Colors.greenAccent,
         onPressed: () => buttonClick(number),
+        splashColor: Colors.greenAccent,
         padding: EdgeInsets.all(25),
         child: Text(
           number,
           style: TextStyle(
             color: Colors.greenAccent,
-            fontFamily: 'Tagu',
+            fontFamily: "Tagu",
             fontWeight: FontWeight.w300,
             fontSize: 25,
           ),
         ),
       ),
     );
-  }
+  } // Method for Button widget
 
   @override
   Widget build(BuildContext context) {
@@ -105,32 +181,34 @@ class _LandingScreenState extends State<LandingScreen> {
                 alignment: Alignment.topRight,
                 padding: EdgeInsets.all(10),
                 child: Wrap(
-                  children: KeyStore.map(
-                    (e) => Text(
-                      e.toString(),
-                      style: TextStyle(
-                        color: Colors.deepOrangeAccent,
-                        fontFamily: 'Tagu',
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ).toList(),
+                  children: myanStored
+                      .map(
+                        (e) => Text(
+                          e.toString(),
+                          style: TextStyle(
+                            color: Colors.deepOrangeAccent,
+                            fontFamily: 'Tagu',
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
-            ),
+            ), //Calculation Result Number
             Container(
-              alignment: Alignment.bottomRight,
+              alignment: Alignment.topRight,
               padding: EdgeInsets.only(right: 10),
               child: IconButton(
-                onPressed: deleteNum,
+                onPressed: removeNumber,
                 icon: Icon(
                   Icons.backspace_rounded,
                   size: 40,
-                  color: Colors.deepOrange,
+                  color: Colors.deepOrangeAccent,
                 ),
               ),
-            ),
+            ), // Delete Icon & Remove Function
             Column(
               children: [
                 Row(
