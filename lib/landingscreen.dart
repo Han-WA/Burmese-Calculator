@@ -33,6 +33,7 @@ class _LandingScreenState extends State<LandingScreen> {
   List<String> calculatenumber = []; // List while calculation
   String currentnumber = '';
   double result = 0;
+  int global_index = 0;
 
   Map<dynamic, String> myanNumbers = {
     '0': "၀",
@@ -57,12 +58,14 @@ class _LandingScreenState extends State<LandingScreen> {
       calculatenumber.clear();
       result = 0;
       currentnumber = '';
+      global_index = 0;
     });
   } // Clearing pressed button number
 
   void removeNumber() {
     if (myanStored.length != 0) {
       setState(() {
+        //TODO: Need to fix about decimal value, removing means entirly removing 1.2 not 2 only and left with 1.
         engStored.clear();
         myanStored.removeLast();
       });
@@ -70,38 +73,51 @@ class _LandingScreenState extends State<LandingScreen> {
   } // Removing Last Number for Delete button
 
   void calculation() {
-    for (int c = 0; c < operators.length; c++) {
+    for (int c = global_index; c < operators.length; c++) {
       if (operators[c] == "+") {
         setState(() {
           result = double.parse(calculatenumber[c]) +
               double.parse(calculatenumber[c + 1]);
-          calculatenumber[c + 1] = result.toString();
+          calculatenumber[c + 1] = result.toString(); //
+          //currentnumber = result.toString();
+          global_index = c + 1;
         });
       } else if (operators[c] == "-") {
         setState(() {
           result = double.parse(calculatenumber[c]) -
               double.parse(calculatenumber[c + 1]);
           calculatenumber[c + 1] = result.toString();
+          global_index = c + 1;
+          //currentnumber = result.toString();
         });
       } else if (operators[c] == "x") {
         setState(() {
           result = double.parse(calculatenumber[c]) *
               double.parse(calculatenumber[c + 1]);
           calculatenumber[c + 1] = result.toString();
+          global_index = c + 1;
+          //currentnumber = result.toString();
         });
       } else if (operators[c] == "/") {
         setState(() {
           result = double.parse(calculatenumber[c]) /
               double.parse(calculatenumber[c + 1]);
           calculatenumber[c + 1] = result.toString();
+          global_index = c + 1;
+          //currentnumber = result.toString();
         });
       }
     }
 
+    print(calculatenumber);
     setState(() {
-      myanStored.clear();
+      myanStored.clear(); //clear everything on display
+      engStored.clear(); // required to remove the old numbers  
     });
 
+    //The code below extract every single character from a sequence of characters of
+    //a string, convert them to single character code, map to respective burmese digits
+    //and add it to the display( myanStored)
     result.toString().runes.forEach((int rune) {
       var character = new String.fromCharCode(rune);
       myanStored.add(myanNumbers[character]);
@@ -113,15 +129,26 @@ class _LandingScreenState extends State<LandingScreen> {
       clearNumber();
     } else if (key == "=") {
       for (int i = 0; i < engStored.length; i++) {
-        if (engStored[i] == "+" ||
+        if (i == 0 &&
+            (engStored[i] == "+" ||
+                engStored[i] == "-" ||
+                engStored[i] == "x" ||
+                engStored[i] == "/")) {
+          print('operator is the first input');
+          operators.add(engStored[i]);
+        } else if (engStored[i] == "+" ||
             engStored[i] == "-" ||
             engStored[i] == "x" ||
             engStored[i] == "/") {
           setState(() {
             operators.add(engStored[i]); // Adding +-*/ to operators list
-            calculatenumber.add(
-                currentnumber); // Adding currentnumber variable with number to calculatenumber
-            currentnumber = "";
+            if (currentnumber != null) {
+              print("Current Number is $currentnumber");
+              // In case calcuatenumber holds the previous operated result
+              calculatenumber.add(
+                  currentnumber); // Adding currentnumber variable with number to calculatenumber
+              currentnumber = "";
+            }
           });
         } else {
           currentnumber += engStored[i]
@@ -129,13 +156,17 @@ class _LandingScreenState extends State<LandingScreen> {
         }
       }
 
+      //The last remaining number to be put into calculatenumber list.
       if (currentnumber != '') {
         setState(() {
           calculatenumber.add(currentnumber);
+          currentnumber = ''; // required to clear the old number
         });
       }
       calculation(); // Calculation all the function
     } else {
+      //This is for adding user inputs into the engstored list and mapping respective
+      // into the myanstored for display ( operators and + included)
       setState(() {
         engStored.add(myanToeng[key]);
         myanStored.add(key);
@@ -146,7 +177,10 @@ class _LandingScreenState extends State<LandingScreen> {
   Widget commonOutlineButton(String number) {
     return Expanded(
       child: OutlineButton(
-        onPressed: () => buttonClick(number),
+        onPressed: () {
+          print('Pressed $number');
+          buttonClick(number);
+        },
         splashColor: Colors.greenAccent,
         padding: EdgeInsets.all(25),
         child: Text(
@@ -198,17 +232,17 @@ class _LandingScreenState extends State<LandingScreen> {
               ),
             ), //Calculation Result Number
             Container(
-              alignment: Alignment.topRight,
-              padding: EdgeInsets.only(right: 10),
-              child: IconButton(
-                onPressed: removeNumber,
-                icon: Icon(
-                  Icons.backspace_rounded,
-                  size: 40,
-                  color: Colors.deepOrangeAccent,
-                ),
-              ),
-            ), // Delete Icon & Remove Function
+                alignment: Alignment.topRight,
+                padding: EdgeInsets.only(right: 10),
+                child: IconButton(
+                  onPressed: removeNumber,
+                  icon: Icon(
+                    Icons
+                        .add_circle, //the original Icons was not running on my machine
+                    size: 40,
+                    color: Colors.deepOrangeAccent,
+                  ),
+                )), // Delete Icon & Remove Function
             Column(
               children: [
                 Row(
